@@ -1,0 +1,107 @@
+class ORFFinder:
+    """A simple tool to find Open Reading Frames (ORFs) in a DNA sequence."""
+
+    DNA_LETTERS = ['A', 'C', 'G', 'T']
+
+    REVERSE_STRAND = {'A': 'T', 'T': 'A', 'C': 'G', 'G': 'C'}
+
+    GENETIC_CODE = {
+        'ATA': 'I', 'ATC': 'I', 'ATT': 'I', 'ATG': 'M',
+        'ACA': 'T', 'ACC': 'T', 'ACG': 'T', 'ACT': 'T',
+        'AAC': 'N', 'AAT': 'N', 'AAA': 'K', 'AAG': 'K',
+        'AGC': 'S', 'AGT': 'S', 'AGA': 'R', 'AGG': 'R',
+        'CTA': 'L', 'CTC': 'L', 'CTG': 'L', 'CTT': 'L',
+        'CCA': 'P', 'CCC': 'P', 'CCG': 'P', 'CCT': 'P',
+        'CAC': 'H', 'CAT': 'H', 'CAA': 'Q', 'CAG': 'Q',
+        'CGA': 'R', 'CGC': 'R', 'CGG': 'R', 'CGT': 'R',
+        'GTA': 'V', 'GTC': 'V', 'GTG': 'V', 'GTT': 'V',
+        'GCA': 'A', 'GCC': 'A', 'GCG': 'A', 'GCT': 'A',
+        'GAC': 'D', 'GAT': 'D', 'GAA': 'E', 'GAG': 'E',
+        'GGA': 'G', 'GGC': 'G', 'GGG': 'G', 'GGT': 'G',
+        'TCA': 'S', 'TCC': 'S', 'TCG': 'S', 'TCT': 'S',
+        'TTC': 'F', 'TTT': 'F', 'TTA': 'L', 'TTG': 'L',
+        'TAC': 'Y', 'TAT': 'Y', 'TAA': '_', 'TAG': '_',
+        'TGC': 'C', 'TGT': 'C', 'TGA': '_', 'TGG': 'W'
+    }
+
+    def __init__(self, dna_sequence: str):
+        """Create a new ORFFinder and validate the sequence."""
+        self.sequence = self.validate_sequence(dna_sequence)
+
+    def validate_sequence(self, dna_seq: str) -> str:
+        """Ensure sequence contains only A, T, C, or G."""
+        seq = dna_seq.upper().replace(" ", "")
+        for base in seq:
+            if base not in self.DNA_LETTERS:
+                raise ValueError(f"Invalid base '{base}'. Use only A, T, C, or G.")
+        return seq
+
+    def reverse_complement(self) -> str:
+        """Return the reverse complement of the DNA sequence."""
+        complement = [self.REVERSE_STRAND[b] for b in self.sequence]
+        return ''.join(complement[::-1])
+
+    def generate_reading_frames(self) -> list[str]:
+        """Return all six possible reading frames (3 forward + 3 reverse)."""
+        reverse_seq = self.reverse_complement()
+        return [
+            self.sequence[0:],  # Frame 1 (forward)
+            self.sequence[1:],  # Frame 2 (forward)
+            self.sequence[2:],  # Frame 3 (forward)
+            reverse_seq[0:],    # Frame 4 (reverse)
+            reverse_seq[1:],    # Frame 5 (reverse)
+            reverse_seq[2:]     # Frame 6 (reverse)
+        ]
+
+    def find_orfs(self, seq: str) -> list[dict]:
+        """Find ORFs in a given sequence and return their details."""
+        start_codon = "ATG"
+        stop_codons = ["TAA", "TAG", "TGA"]
+        orfs = []
+
+        pos = 0
+        while pos < len(seq) - 2:
+            codon = seq[pos:pos+3]
+            if codon == start_codon:
+                orf_seq = ""
+                aa_seq = ""
+                while codon not in stop_codons and codon in self.GENETIC_CODE:
+                    orf_seq += codon
+                    aa_seq += self.GENETIC_CODE[codon]
+                    pos += 3
+                    codon = seq[pos:pos+3]
+                orf_seq += codon
+                orfs.append({
+                    "dna": orf_seq,
+                    "amino_acids": aa_seq,
+                    "length": len(aa_seq)
+                })
+            pos += 3
+        return orfs
+
+
+def main():
+    print("=== ORF Finder ===")
+    dna_input = input("Enter a DNA sequence: ").strip()
+
+    try:
+        finder = ORFFinder(dna_input)
+        frames = finder.generate_reading_frames()
+
+        for i, frame in enumerate(frames, start=1):
+            print(f"\nReading Frame #{i}:")
+            orfs = finder.find_orfs(frame)
+            if orfs:
+                for orf in orfs:
+                    print(f"DNA: {orf['dna']}")
+                    print(f"Amino Acids: {orf['amino_acids']}")
+                    print(f"Length: {orf['length']}\n")
+            else:
+                print("No ORFs found in this frame.")
+
+    except ValueError as err:
+        print("Error:", err)
+
+
+if __name__ == "__main__":
+    main()
