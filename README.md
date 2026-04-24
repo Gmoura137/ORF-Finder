@@ -30,12 +30,12 @@ ORFs often represent genes that can produce proteins.
 
 ## Features
 
-✅ DNA sequence validation  
-✅ Reverse complement generation  
-✅ Six reading frame analysis  
-✅ ORF detection  
-✅ DNA to protein translation  
-✅ Beginner-friendly code structure
+DNA sequence validation  
+Reverse complement generation  
+Six reading frame analysis  
+ORF detection  
+DNA to protein translation  
+Beginner-friendly code structure
 
 ---
 
